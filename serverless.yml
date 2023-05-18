@@ -1,0 +1,77 @@
+service: task-1
+frameworkVersion: "3"
+
+provider:
+    name: aws
+    runtime: nodejs12.x
+    lambdaHashingVersion: "20201221"
+    region: ap-south-1
+    iamRoleStatements:
+        - Effect: Allow
+          Action:
+              - dynamodb:*
+          Resource:
+              - arn:aws:dynamodb:ap-south-1:800331105397:table/taskTable
+        - Effect: Allow
+          Action:
+              - sqs:*
+          Resource:
+              - arn:aws:sqs:ap-south-1:800331105397:emailSQS
+
+functions:
+    createTask:
+        handler: src/createTask.createTask
+        events:
+            - httpApi:
+                  path: /createTask
+                  method: POST
+    getAllTask:
+        handler: src/getAllTask.getAllTask
+        events:
+            - httpApi:
+                  path: /getTasks
+                  method: get
+    getTask:
+        handler: src/getTask.getTask
+        events:
+            - httpApi:
+                  path: /getTask/{id}
+                  method: get
+    updateProduct:
+        handler: src/updateProduct.updateProduct
+        events:
+            - httpApi:
+                  path: /updateproduct/{id}
+                  method: put
+    updateProductsInPromise:
+        handler: src/updateProduct_promise.update
+        events:
+            - httpApi:
+                  path: /updateproductspromise/{id}
+                  method: put
+    deleteProduct:
+        handler: src/deleteProduct.deleteProduct
+        events:
+            - httpApi:
+                  path: /deleteproduct/{id}
+                  method: delete
+
+plugins:
+    - serverless-plugin-typescript
+    - serverless-plugin-common-excludes
+    - serverless-step-functions
+
+resources:
+    Resources:
+        taskTable:
+            Type: AWS::DynamoDB::Table
+            Properties:
+                TableName: taskTable
+                BillingMode: PAY_PER_REQUEST
+                AttributeDefinitions:
+                    - AttributeName: ID
+                      AttributeType: S
+                KeySchema:
+                    - AttributeName: ID
+                      KeyType: HASH
+            
